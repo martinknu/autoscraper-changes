@@ -6,10 +6,14 @@ from bs4 import BeautifulSoup
 response = requests.get("https://www.dr.dk/nyheder") #https://www.bbc.com/ : https://www.dr.dk/nyheder/
 doc = BeautifulSoup(response.text, 'html.parser')
 
+#print(doc.prettify())
+
+#articles = doc.find_all("article")[0]
+
+#print(articles)
 
 
-
-stories = doc.select(".hydra-latest-news-page-short-news")
+stories = doc.select("article.hydra-latest-news-page-short-news")
 
 #print(stories)
 
@@ -31,12 +35,18 @@ for story in stories:
         pass
 
     try:
-        row['summary'] = story.select_one('p, .hydra-latest-news-page-short-news__paragraph dre-variables').text.strip() # hydra-latest-news-page-short-news__paragraph dre-variables
+        mySubjects = story.find_all(["p ", "span"], "hydra-latest-news-page-short-news__paragraph dre-variables", "display:inline")#.text.strip() # 
+        #myResult = ""
+        #for mySubject in mySubjects:
+        #    myResult += mySubject
+        #    print(myResult)
+            
+        row['summary'] = story.find_all(["p", "span"], "hydra-latest-news-page-short-news__paragraph dre-variables")
     except:
         pass
 
     rows.append(row)
 
-print(rows)
+#print(rows)
 df = pd.DataFrame(rows)
 df.to_csv("bbc-headlines.csv", index=True)

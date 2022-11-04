@@ -1,21 +1,12 @@
 import requests
-
 import pandas as pd
 from bs4 import BeautifulSoup
 
-response = requests.get("https://www.dr.dk/nyheder") #https://www.bbc.com/ : https://www.dr.dk/nyheder/
+
+response = requests.get("https://www.dr.dk/nyheder") 
 doc = BeautifulSoup(response.text, 'html.parser')
 
-#print(doc.prettify())
-
-#articles = doc.find_all("article")[0]
-
-#print(articles)
-
-
 stories = doc.select("article.hydra-latest-news-page-short-news")
-
-#print(stories)
 
 rows = []
 
@@ -25,7 +16,7 @@ for story in stories:
     row['title'] = story.select_one('h2').text.strip() #.dre-hyphenate-text
 
     try:
-        row['href'] = story.select_one('.dre-share-link-copy-url')['href']
+        row['href'] = story.select_one("a")['href']
     except:
         pass
 
@@ -35,18 +26,21 @@ for story in stories:
         pass
 
     try:
-        mySubjects = story.find_all(["p ", "span"], "hydra-latest-news-page-short-news__paragraph dre-variables", "display:inline")#.text.strip() # 
-        #myResult = ""
-        #for mySubject in mySubjects:
-        #    myResult += mySubject
-        #    print(myResult)
-            
-        row['summary'] = story.find_all(["p", "span"], "hydra-latest-news-page-short-news__paragraph dre-variables")
+        mySubjects = story.find_all("p", 'hydra-latest-news-page-short-news__paragraph dre-variables')#.text.strip() # 
+        mySubject = str(mySubjects).replace("hydra-latest-news-page-short-news__paragraph dre-variables", "")
+        mySubject = mySubject.replace("\"", "")     
+        mySubject = mySubject.replace("[<p class=>", "")     
+        mySubject = mySubject.replace("<span style=display:inline><span class=dre-glossary-match>", "")     
+        mySubject = mySubject.replace("</span></span>", "")     
+        mySubject = mySubject.replace("</p>, <p class=>", "")     
+        mySubject = mySubject.replace("</p>]", "")     
+        mySubject = mySubject.replace("rel=noopener noreferrer target=_blank>", "")     
+   
+        row['summary'] = mySubject
     except:
         pass
 
     rows.append(row)
 
-#print(rows)
 df = pd.DataFrame(rows)
-df.to_csv("bbc-headlines.csv", index=True)
+df.to_csv("news.csv", index=True)
